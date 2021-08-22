@@ -1,0 +1,11 @@
+
+{
+    "hostip" : "0.0.0.0",
+    "port" : 5000,
+    "alarmOnEdgeCases" : true,
+    "thresholdVal" : 0.225,
+    "timeOfAlarm" : 15,
+    "cameraPort" : 0,
+    "displayFPS" : true,
+    "anotateEyes" : true
+}

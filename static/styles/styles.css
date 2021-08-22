@@ -1,0 +1,217 @@
+body {
+  margin: 0;
+  width: 100%;
+  height: 100vh;
+  background: linear-gradient(-45deg, #143D59, #030303);
+  background-size: 400% 400%;
+  -webkit-animation: gradientBG 15s ease infinite;
+          animation: gradientBG 15s ease infinite;
+}
+
+@-webkit-keyframes gradientBG {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes gradientBG {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.main-container {
+  width: 100%;
+  height: 100%;
+  margin: 0 auto;
+  position: absolute;
+  text-align: center;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+      -ms-flex-flow: row wrap;
+          flex-flow: row wrap;
+  -webkit-box-pack: space-evenly;
+      -ms-flex-pack: space-evenly;
+          justify-content: space-evenly;
+}
+
+.main-container .containner-l {
+  border: 1px solid yellow;
+  outline: 2px solid black;
+  padding: 20px;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
+  margin: auto 0;
+  height: 480px;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+}
+
+.main-container .containner-r {
+  border: 2px solid yellow;
+  padding: 20px;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  height: 480px;
+  margin: auto 0;
+}
+
+.main-container .fixed {
+  overflow: auto;
+}
+
+.main-container .list {
+  margin-right: 5px;
+  border-radius: 5px;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+      -ms-flex-flow: row wrap;
+          flex-flow: row wrap;
+  background: #F4B41A;
+  -webkit-box-pack: justify;
+      -ms-flex-pack: justify;
+          justify-content: space-between;
+  margin-bottom: 10px;
+  border: 2px solid black;
+  padding: 5px;
+  -webkit-box-shadow: #26394d 0px 20px 30px -10px;
+          box-shadow: #26394d 0px 20px 30px -10px;
+}
+
+.main-container .list .label {
+  font-family: monospace;
+  text-transform: capitalize;
+  font-weight: bolder;
+  font-size: 14px;
+  color: #143D59;
+}
+
+.main-container .list output {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  max-width: 40px;
+  width: 33px;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+}
+
+.main-container .submitButton {
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  margin-left: 20px;
+  background-color: #143D59;
+  color: #F4B41A;
+  -webkit-box-shadow: 0 0 10px 2px #143D59;
+          box-shadow: 0 0 10px 2px #143D59;
+  font-weight: bold;
+  font-family: monospace;
+  text-transform: uppercase;
+  padding: 3px;
+  font-size: 14px;
+}
+
+h1 {
+  color: #F4B41A;
+  font-family: monospace;
+  font-weight: bold;
+  text-transform: uppercase;
+  margin: 0px;
+  -webkit-margin-after: 0px;
+          margin-block-end: 0px;
+}
+
+.input {
+  background-color: #F4B41A;
+  border: 1px solid black;
+  -webkit-box-shadow: none;
+          box-shadow: none;
+  color: #143D59;
+  font-weight: bold;
+  font-family: monospace;
+  text-transform: uppercase;
+  border-radius: 2px;
+}
+
+.value {
+  color: #143D59;
+  font-weight: bold;
+  font-family: monospace;
+  text-transform: uppercase;
+  border-radius: 2px;
+}
+
+form {
+  margin: 0px;
+  -webkit-margin-after: 0px;
+          margin-block-end: 0px;
+}
+
+.fixed::-webkit-scrollbar {
+  width: 20px;
+}
+
+.fixed::-webkit-scrollbar-track {
+  background-color: #143D59;
+  border-radius: 100px;
+}
+
+.fixed::-webkit-scrollbar-thumb {
+  border-radius: 100px;
+  border: 5px solid transparent;
+  background-clip: content-box;
+  background-color: #767676;
+}
+
+input::-webkit-input-placeholder {
+  color: #143D59;
+  opacity: 0.5;
+  font-family: monospace;
+  text-transform: uppercase;
+}
+
+@media screen and (max-width: 1040px) {
+  .main-container .containner-r {
+    margin: 20px 0;
+  }
+  .main-container .containner-l {
+    margin: 20px 0;
+  }
+}

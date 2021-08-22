@@ -1,0 +1,104 @@
+{
+    "range": {
+        "thresholdVal": {
+            "value": 0.225,
+            "min": 0,
+            "max": 1
+        },
+        "timeOfAlarm": {
+            "value": 10.0,
+            "min": 1,
+            "max": 30
+        }
+    },
+    "select": {
+        "alarmOnEdgeCases": {
+            "value": {
+                "value1": true,
+                "value2": false
+            },
+            "selected": true
+        },
+        "displayFPS": {
+            "value": {
+                "value1": true,
+                "value2": false
+            },
+            "selected": true
+        },
+        "anotateEyes": {
+            "value": {
+                "value1": true,
+                "value2": false
+            },
+            "selected": false
+        }
+    },
+    "number": {
+        "cameraPort": {
+            "value": 0,
+            "min": 0,
+            "max": 99
+        },
+        "port": {
+            "value": 5000,
+            "min": 0,
+            "max": 65535
+        },
+        "port1": {
+            "value": 5000,
+            "min": 0,
+            "max": 65535
+        },
+        "port2": {
+            "value": 5000,
+            "min": 0,
+            "max": 65535
+        },
+        "port3": {
+            "value": 5000,
+            "min": 0,
+            "max": 65535
+        },
+        "port4": {
+            "value": 5000,
+            "min": 0,
+            "max": 65535
+        },
+        "port5": {
+            "value": 5000,
+            "min": 0,
+            "max": 65535
+        },
+        "port6": {
+            "value": 5000,
+            "min": 0,
+            "max": 65535
+        },
+        "port7": {
+            "value": 5000,
+            "min": 0,
+            "max": 65535
+        },
+        "port8": {
+            "value": 5000,
+            "min": 0,
+            "max": 65535
+        },
+        "port9": {
+            "value": 5000,
+            "min": 0,
+            "max": 65535
+        },
+        "port0": {
+            "value": 5000,
+            "min": 0,
+            "max": 65535
+        }
+    },
+    "string": {
+        "hostip": {
+            "value": "0.0.0.0"
+        }
+    }
+}
