@@ -2,7 +2,7 @@ import os
 from flask import Response
 from flask import Flask, request, redirect
 from flask import render_template, url_for
-import time
+
 import numpy as np
 import time
 from scipy.spatial import distance as dist
@@ -12,6 +12,11 @@ import threading
 import json
 import base64
 import datetime
+import RPi.GPIO as GPIO
+
+
+import subprocess
+
 
 app = Flask(__name__)
 
@@ -42,9 +47,9 @@ def send():
 
 
 # @app.route("/sleeping")
-# def read_sleep():
+def read_sleep():
 #     # return the rendered template
-#     return render_template("sleeping.json")
+    return render_template("sleeping.json")
 
 
 # @app.route("/blinking")
@@ -155,6 +160,25 @@ def write_json(new_data, filename, value):
         # convert back to json.
         json.dump(file_data, file, indent=4)
 
+def filename():
+    with open('name.txt', 'r+') as file:
+        # First we load existing data into a dict.
+        file_data = file.read()
+        # Join new_data with file_data inside emp_details
+        
+        # Sets file's current position at offset.
+        #file.seek(0)
+        # convert back to json.
+        
+        print(file_data)
+        newfile(int(file_data))
+        return str(file_data)
+ 
+def newfile(val):
+    with open('name.txt', 'w') as file:
+        # First we load existing data into a dict.
+        file.write(str(val+1))
+
 
 def detection():
     global displayFPS
@@ -168,201 +192,241 @@ def detection():
     valD = -0.13
 
     score = 0
-
+    counter=0
+    
+    
     detectionDo = True
     mp_face_mesh = mp.solutions.face_mesh
     assignVariables()
+    name=filename()
+    result = cv2.VideoWriter('SleepingVideos/'+name+'.avi', 
+                         cv2.VideoWriter_fourcc(*'XVID'),
+                         30, (640,480))
+
     with mp_face_mesh.FaceMesh(
             min_detection_confidence=0.5,
             min_tracking_confidence=0.5) as face_mesh:
-        while True:
-            # print(val)
-            # draw.rectangle((0,0,_width,_height), outline=0, fill=0)
-            # draw.text((x, top),"    DETECTING ....   ",  font=font, fill=255)
-            try:
+	    try:
+	        while True:
+	            # print(val)
+	            # draw.rectangle((0,0,_width,_height), outline=0, fill=0)
+	            # draw.text((x, top),"    DETECTING ....   ",  font=font, fill=255)
+	            try:
 
-                success, image = cap.read()
-            except Exception as e:
-                print(e)
+	                success, image = cap.read()
+    #                image=cv2.resize(image,(640,480))
+	            except Exception as e:
+	                print(e)
 
-            if not success:
-                #  print('failed frame')
-                break
+	            if not success:
+	                #  print('failed frame')
+	                break
 
-            h, w = image.shape[:2]
+	            h, w = image.shape[:2]
 
-            start = time.time()
+	            start = time.time()
 
-            image = cv2.cvtColor(cv2.flip(image, 1), cv2.COLOR_BGR2RGB)
+	            image = cv2.cvtColor(cv2.flip(image, 1), cv2.COLOR_BGR2RGB)
 
-            image.flags.writeable = False
-            results = face_mesh.process(image)
+	            image.flags.writeable = False
+	            results = face_mesh.process(image)
 
-            image.flags.writeable = True
+	            image.flags.writeable = True
 
-            image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-            if results.multi_face_landmarks:
-                for face_landmarks in results.multi_face_landmarks:
-                    a = [data_point for data_point in face_landmarks.landmark]
-                right_eye = [263, 362, 249, 390, 373, 374, 380,
-                             381, 382, 466, 388, 387, 386, 385, 384, 398]  #
-                req_re = [263, 362, 384, 381, 385, 380, 387, 373, 388, 390]
-                req_le = [133, 33, 161, 163, 160, 144, 157, 154, 158, 153]
-                left = []
-                right = []
+	            image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+	            if results.multi_face_landmarks:
+	                for face_landmarks in results.multi_face_landmarks:
+	                    a = [data_point for data_point in face_landmarks.landmark]
+	                right_eye = [263, 362, 249, 390, 373, 374, 380,
+	                             381, 382, 466, 388, 387, 386, 385, 384, 398]  #
+	                req_re = [263, 362, 384, 381, 385, 380, 387, 373, 388, 390]
+	                req_le = [133, 33, 161, 163, 160, 144, 157, 154, 158, 153]
+	                left = []
+	                right = []
 
-                left_eye = [133, 33, 155, 154, 153, 145, 144,
-                            163, 7, 173, 157, 158, 159, 160, 161, 246]  #
-                for i in range(len(a)):
-                    if i in right_eye or i in left_eye:
-                        if i in req_le:
-                            left.append((a[i].x, a[i].y))
-                        if i in req_le:
-                            right.append((a[i].x, a[i].y))
-                        if anotateEyes:
-                            size = np.array([w, h])
-                            box = [a[i].x, a[i].y] * size
-                            (X, Y) = box.astype(int)
-                            cv2.circle(image, (X, Y), 2, (0, 255, 0), -1)
+	                left_eye = [133, 33, 155, 154, 153, 145, 144,
+	                            163, 7, 173, 157, 158, 159, 160, 161, 246]  #
+	                for i in range(len(a)):
+	                    if i in right_eye or i in left_eye:
+	                        if i in req_le:
+	                            left.append((a[i].x, a[i].y))
+	                        if i in req_le:
+	                            right.append((a[i].x, a[i].y))
+	                        if anotateEyes:
+	                            size = np.array([w, h])
+	                            box = [a[i].x, a[i].y] * size
+	                            (X, Y) = box.astype(int)
+	                            cv2.circle(image, (X, Y), 2, (0, 255, 0), -1)
 
-                    # cv2.putText(image, str(i), (X, Y), cv2.FONT_HERSHEY_SIMPLEX, 0.1, (0, 255, 0), 1)
-                distanceLeft = a[33].x-a[34].x
-                distanceRight = a[264].x-a[359].x
+	                    # cv2.putText(image, str(i), (X, Y), cv2.FONT_HERSHEY_SIMPLEX, 0.1, (0, 255, 0), 1)
+	                distanceLeft = a[33].x-a[34].x
+	                distanceRight = a[264].x-a[359].x
 
-                distanceUP = a[10].z - a[152].z
-                if distanceLeft < 0.020:
-                    val = 0.27
-                    valU = 0.070
+	                distanceUP = a[10].z - a[152].z
+	                if distanceLeft < 0.020:
+	                    val = 0.23
+	                    valU = 0.070
 
-                elif distanceLeft < 0.027:
-                    val = 0.23
-                    if distanceUP < -0.05:
-                        val = 0.25
-                else:
-                    val = 0.225
-                    valU = 0.10
-                    valD = -0.13
+	                elif distanceLeft < 0.027:
+	                    val = 0.27
+	                    if distanceUP < -0.05:
+	                        val = 0.25
+	                else:
+	                    val = thresholdVal
+	                    valU = 0.10
+	                    valD = -0.13
 
-                if distanceLeft < 0.00:
-                    cv2.putText(image, " watching left", (150, 100),
-                                cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
-                    detectionDo = False
-                    if alarmOnEdgeCases:
-                        score += 1
-                elif distanceRight < 0.00:
-                    cv2.putText(image, " watching right", (150, 100),
-                                cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
-                    detectionDo = False
-                    if alarmOnEdgeCases:
-                        score += 1
-                elif distanceUP >= valU:
-                    cv2.putText(image, " watching up", (150, 100),
-                                cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
-                    detectionDo = False
-                    if alarmOnEdgeCases:
-                        score += 1
-                elif distanceUP <= valD:
-                    cv2.putText(image, " watching down", (150, 100),
-                                cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
-                    detectionDo = False
-                    if alarmOnEdgeCases:
-                        score += 1
-                else:
-                    detectionDo = True
-                if detectionDo:
+	                if distanceLeft < 0.00:
+	                    cv2.putText(image, " watching left", (150, 100),
+	                                cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
+	                    detectionDo = False
+	                    if alarmOnEdgeCases:
+	                        score += 1
+	                elif distanceRight < 0.00:
+	                    cv2.putText(image, " watching right", (150, 100),
+	                                cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
+	                    detectionDo = False
+	                    if alarmOnEdgeCases:
+	                        score += 1
+    #                elif distanceUP >= valU:
+     #                   cv2.putText(image, " watching up", (150, 100),
+     #                               cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
+     #                   detectionDo = False
+      #                  if alarmOnEdgeCases:
+     #                       score += 1
+	                elif distanceUP <= valD:
+	                    cv2.putText(image, " watching down", (150, 100),
+	                                cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
+	                    detectionDo = False
+	                    if alarmOnEdgeCases:
+	                        score += 1
+	                else:
+	                    detectionDo = True
+	                if detectionDo:
 
-                    leftEAR = eye_aspect_ratio(left)
-                    rightEAR = eye_aspect_ratio(right)
+	                    leftEAR = eye_aspect_ratio(left)
+	                    rightEAR = eye_aspect_ratio(right)
 
-                    ear = (leftEAR + rightEAR) / 2.0
-                    # print(ear, val)
-                    # cv2.putText(image, str(ear), (100, 100), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 255), 3)
-                    # print(ear)
-                    if ear < val:
-                        # print("reached")
-                        score += 1
-                        #draw = ImageDraw.Draw(_image)
-                        #draw.rectangle((0,0,_width,_height), outline=0, fill=0)
-                        cv2.putText(image, "BLINKED", (300, 70),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
-                        # draw.text((x, top+8),       "      BLINKED   ",  font=font, fill=255)
-                        # disp.image(_image)
-                        # disp.display()
-                        # GPIO.output(buzzer,GPIO.HIGH)
-                        # GPIO.output(led,GPIO.HIGH)
-                        # IMAGE SAVE
-                        # image_ = cv2.resize(image, (256, 256))
-                        # # retval, buffer = cv2.imencode('.jpg', image_)
-                        # if retval:
+	                    ear = (leftEAR + rightEAR) / 2.0
+	                    # print(ear, val)
+	                    # cv2.putText(image, str(ear), (100, 100), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 255), 3)
+	                    # print(ear)
+	                    if ear < val:
+	                        # print("reached")
+	                        score += 1
+	                        #draw = ImageDraw.Draw(_image)
+	                        #draw.rectangle((0,0,_width,_height), outline=0, fill=0)
+	                        GPIO.output(led2,GPIO.HIGH)
+	                        cv2.putText(image, "BLINKED", (300, 70),
+	                                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
+	                        # draw.text((x, top+8),       "      BLINKED   ",  font=font, fill=255)
+	                        # disp.image(_image)
+	                        # disp.display()
+	                        #GPIO.output(buzzer,GPIO.HIGH)
+	                        
+	                        # IMAGE SAVE
+	                        # image_ = cv2.resize(image, (256, 256))
+	                        # # retval, buffer = cv2.imencode('.jpg', image_)
+	                        # if retval:
 
-                        # x = datetime.datetime.now()
-                        # y = {
+	                        # x = datetime.datetime.now()
+	                        # y = {
 
-                        #     "name": str(x),
-                        #     "date": str(x.strftime("%x")),
-                        #     "time": str(x.strftime("%X"))
-                        # }
-                        #     write_json(
-                        #         y, "templates/blinking.json", "blinking")
-                        # cv2.imwrite("test.jpg", image_)
-                        # print(image_)
-                    else:
-                        #draw.rectangle((0,0,_width,_height), outline=0, fill=0)
-                        # disp.clear()
-                        # GPIO.output(buzzer,GPIO.LOW)
-                        # GPIO.output(led,GPIO.LOW)
-                        score = 0
-                    if score > timeOfAlarm:
+	                        #     "name": str(x),
+	                        #     "date": str(x.strftime("%x")),
+	                        #     "time": str(x.strftime("%X"))
+	                        # }
+	                        #     write_json(
+	                        #         y, "templates/blinking.json", "blinking")
+	                        # cv2.imwrite("test.jpg", image_)
+	                        # print(image_)
+	                    else:
+	                        #draw.rectangle((0,0,_width,_height), outline=0, fill=0)
+	                        # disp.clear()
+	                        #GPIO.output(buzzer,GPIO.LOW)
+	                        GPIO.output(led2,GPIO.LOW)
+	                        score = 0
+	                    if score > timeOfAlarm:
 
-                        cv2.putText(image, "SLEEPING", (200, 400),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 3)
-                        # disp.clear()
-                        # draw.text((x, top+16),       "   SLEEPING   ",  font=font, fill=255)
-                        # GPIO.output(buzzer,GPIO.HIGH)
-                        # GPIO.output(led,GPIO.HIGH)
-                        # sleep(1)
-                        # IMAGE SAVE 2
-                        # image_ = cv2.resize(image, (256, 256))
-                        # # retval, buffer = cv2.imencode('.jpg', image_)
-                        # if retval:
+	                        cv2.putText(image, "SLEEPING", (200, 400),
+	                                    cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 3)
+	                        # disp.clear()
+	                        # draw.text((x, top+16),       "   SLEEPING   ",  font=font, fill=255)
+	                        GPIO.output(buzzer,GPIO.HIGH)
+	                        GPIO.output(led2,GPIO.HIGH)
+	                        #time.sleep(1)
+	                        #GPIO.output(buzzer,GPIO.LOW)
+	                    else:
+	                    	GPIO.output(buzzer,GPIO.LOW)
+	                    	GPIO.output(led2,GPIO.LOW)
+	                    	#score = 0
+	                    
+	                        # IMAGE SAVE 2
+	                        # image_ = cv2.resize(image, (256, 256))
+	                        # # retval, buffer = cv2.imencode('.jpg', image_)
+	                        # if retval:
 
-                        # x = datetime.datetime.now()
-                        # y = {
+	                        # x = datetime.datetime.now()
+	                        # y = {
 
-                        #     "name": str(x),
-                        #     "date": str(x.strftime("%x")),
-                        #     "time": str(x.strftime("%X"))
-                        # }
-                        #     write_json(
-                        #         y, "templates/blinking.json", "blinking")
-                        # cv2.imwrite(str(x)+".jpg", image_)
-                        # cv2.putText(image, str(i), (X, Y), cv2.FONT_HERSHEY_SIMPLEX, 0.1, (0, 255, 0), 1)
-                else:
-                    if score > timeOfAlarm:
-                        cv2.putText(image, "Watch Front", (200, 400),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 3)
-                        # GPIO.output(buzzer,GPIO.HIGH)
-                        # GPIO.output(led,GPIO.HIGH)
-                        # sleep(1)
+	                        #     "name": str(x),
+	                        #     "date": str(x.strftime("%x")),
+	                        #     "time": str(x.strftime("%X"))
+	                        # }
+	                        #     write_json(
+	                        #         y, "templates/blinking.json", "blinking")
+	                        # cv2.imwrite(str(x)+".jpg", image_)
+	                        # cv2.putText(image, str(i), (X, Y), cv2.FONT_HERSHEY_SIMPLEX, 0.1, (0, 255, 0), 1)
+	                else:
+	                    if score > timeOfAlarm:
+	                        cv2.putText(image, "Watch Front", (200, 400),
+	                                    cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 3)
+	                        GPIO.output(buzzer,GPIO.HIGH)
+	                        GPIO.output(led2,GPIO.HIGH)
+	                        #time.sleep(1)
+	                    else:    
+	                        GPIO.output(buzzer,GPIO.LOW)
+	                        GPIO.output(led2,GPIO.LOW)
+	                        #score=0
+	            end = time.time()
+	            totalTime = end - start
+	            if displayFPS:
+	                try:
+	                    fps = 1 / totalTime
+	                except:
+	                    pass
 
-            end = time.time()
-            totalTime = end - start
-            if displayFPS:
-                try:
-                    fps = 1 / totalTime
-                except:
-                    pass
+	                cv2.putText(image, f'FPS: {int(fps)}', (20, 70),
+	                            cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 255, 0), 2)
+	            result.write(image)
+	            with lock:
+                        outputFrame = image.copy()
 
-                cv2.putText(image, f'FPS: {int(fps)}', (20, 70),
-                            cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 255, 0), 2)
-
-            with lock:
-                outputFrame = image.copy()
-
+	    except Exception as e:
+	        print(e)
 
 if __name__ == '__main__':
     print("starting")
+    # Raspberry Pi pin configuration:
+    RST = None     # on the PiOLED this pin isnt used
+	# Note the following are only used with SPI:
+    DC = 23
+    SPI_PORT = 0
+    SPI_DEVICE = 0
+
+    GPIO.setwarnings(False)
+	#Select GPIO mode
+    GPIO.setmode(GPIO.BCM)
+	#Set buzzer - pin 23 as output
+    buzzer=5
+    led1=16
+    led2=26
+    GPIO.setup(buzzer,GPIO.OUT)
+    GPIO.setup(led1,GPIO.OUT)
+    GPIO.setup(led2,GPIO.OUT)
+    GPIO.output(led1,GPIO.HIGH)
     variables_dict = None
+    stop_thread=False 
     try:
         assignVariables()
     except Exception as e:
@@ -378,15 +442,21 @@ if __name__ == '__main__':
         print("choosing default")
 
     cap = cv2.VideoCapture(cameraPort)
+    
     outputFrame = None
+
     lock = threading.Lock()
     t = threading.Thread(target=detection, args=())
     t.daemon = True
 
     t.start()
     # start the flask app
-    app.run(host=hostip, port=port, debug=True,
+    try:
+    	app.run(host=hostip, port=port, debug=True,
             threaded=True, use_reloader=False)
+    except:
+    	pass
 
     cap.release()
+    GPIO.output(led1,GPIO.LOW)
     cv2.destroyAllWindows()
