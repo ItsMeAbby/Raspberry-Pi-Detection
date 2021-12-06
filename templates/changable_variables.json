@@ -1,14 +1,34 @@
 {
     "range": {
         "thresholdVal": {
-            "value": 0.225,
+            "value": 0.23,
             "min": 0,
             "max": 1
         },
         "timeOfAlarm": {
-            "value": 10.0,
+            "value": 15.0,
             "min": 1,
             "max": 30
+        },
+        "box_X1": {
+            "value": 1,
+            "min": 1,
+            "max": 600
+        },
+        "box_X2": {
+            "value": 600,
+            "min": 1,
+            "max": 600
+        },
+        "box_Y1": {
+            "value": 152,
+            "min": 1,
+            "max": 400
+        },
+        "box_Y2": {
+            "value": 252,
+            "min": 1,
+            "max": 400
         }
     },
     "select": {
@@ -31,7 +51,7 @@
                 "value1": true,
                 "value2": false
             },
-            "selected": false
+            "selected": true
         }
     },
     "number": {
@@ -45,55 +65,20 @@
             "min": 0,
             "max": 65535
         },
-        "port1": {
-            "value": 5000,
+        "led1": {
+            "value": 16,
             "min": 0,
-            "max": 65535
+            "max": 32
         },
-        "port2": {
-            "value": 5000,
+        "led2": {
+            "value": 25,
             "min": 0,
-            "max": 65535
+            "max": 32
         },
-        "port3": {
-            "value": 5000,
+        "buzzer": {
+            "value": 5,
             "min": 0,
-            "max": 65535
-        },
-        "port4": {
-            "value": 5000,
-            "min": 0,
-            "max": 65535
-        },
-        "port5": {
-            "value": 5000,
-            "min": 0,
-            "max": 65535
-        },
-        "port6": {
-            "value": 5000,
-            "min": 0,
-            "max": 65535
-        },
-        "port7": {
-            "value": 5000,
-            "min": 0,
-            "max": 65535
-        },
-        "port8": {
-            "value": 5000,
-            "min": 0,
-            "max": 65535
-        },
-        "port9": {
-            "value": 5000,
-            "min": 0,
-            "max": 65535
-        },
-        "port0": {
-            "value": 5000,
-            "min": 0,
-            "max": 65535
+            "max": 32
         }
     },
     "string": {
