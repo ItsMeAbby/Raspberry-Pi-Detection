@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import os
 from flask import Response
 from flask import Flask, request, redirect
@@ -67,6 +68,14 @@ def updateJson(data):
             data["thresholdVal"])
         changable_variables_list["range"]["timeOfAlarm"]["value"] = float(
             data["timeOfAlarm"])
+        changable_variables_list["range"]["box_X1"]["value"] = int(float(
+            data["box_X1"]))
+        changable_variables_list["range"]["box_X2"]["value"] = int(float(
+            data["box_X2"]))
+        changable_variables_list["range"]["box_Y1"]["value"] = int(float(
+            data["box_Y1"]))
+        changable_variables_list["range"]["box_Y2"]["value"] = int(float(
+            data["box_Y2"]))
 
         changable_variables_list["select"]["alarmOnEdgeCases"]["selected"] = True if data["alarmOnEdgeCases"] == "true" else False
 
@@ -95,10 +104,14 @@ def readFromJSON():
 
 
 def assignVariables():
-    global hostip, port, alarmOnEdgeCases, thresholdVal, timeOfAlarm, cameraPort, displayFPS, anotateEyes
+    global hostip, port, alarmOnEdgeCases, thresholdVal, timeOfAlarm, cameraPort, displayFPS, anotateEyes,box_X1, box_X2,box_Y1,box_Y2
     readFromJSON()
     thresholdVal = variables_dict["range"]["thresholdVal"]["value"]
     timeOfAlarm = variables_dict["range"]["timeOfAlarm"]["value"]
+    box_X1 = int(variables_dict["range"]["box_X1"]["value"])
+    box_X2 = int(variables_dict["range"]["box_X2"]["value"])
+    box_Y1 = int(variables_dict["range"]["box_Y1"]["value"])
+    box_Y2 = int(variables_dict["range"]["box_Y2"]["value"])
     alarmOnEdgeCases = variables_dict["select"]["alarmOnEdgeCases"]["selected"]
     displayFPS = variables_dict["select"]["displayFPS"]["selected"]
     anotateEyes = variables_dict["select"]["anotateEyes"]["selected"]
@@ -187,6 +200,7 @@ def detection():
     global timeOfAlarm
 
     global cap, outputFrame, lock
+    global box_X1, box_X2,box_Y1,box_Y2
     val = thresholdVal
     valU = 0.10
     valD = -0.13
@@ -197,6 +211,7 @@ def detection():
     
     detectionDo = True
     mp_face_mesh = mp.solutions.face_mesh
+    
     assignVariables()
     name=filename()
     result = cv2.VideoWriter('SleepingVideos/'+name+'.avi', 
@@ -230,10 +245,12 @@ def detection():
 
 	            image.flags.writeable = False
 	            results = face_mesh.process(image)
-
+	            #image=cv2.rectangle(image,(box_X1,box_Y1),(box_X2,box_Y2),(255,0,0),2)
 	            image.flags.writeable = True
 
 	            image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+	            image=cv2.rectangle(image,(box_X1,box_Y1),(box_X2,box_Y2),(255,0,0),1)
+	            #print(image.shape)
 	            if results.multi_face_landmarks:
 	                for face_landmarks in results.multi_face_landmarks:
 	                    a = [data_point for data_point in face_landmarks.landmark]
@@ -263,6 +280,20 @@ def detection():
 	                distanceRight = a[264].x-a[359].x
 
 	                distanceUP = a[10].z - a[152].z
+	                siz = np.array([w, h])
+	                boX = [a[33].x, a[33].y] * siz
+	                boY = [a[264].x, a[264].y] * siz
+	                (X1, Y1) = boX.astype(int)
+	                (X2, Y2) = boY.astype(int)
+	        
+	                if (X1>box_X1 and Y1>box_Y1 and X2<box_X2 and Y2<box_Y2 ):
+	                    GPIO.output(led2,GPIO.HIGH)
+	                    #cv2.putText(image, " in range", (150, 100),
+	                                #cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
+	                else:
+	                    GPIO.output(led2,GPIO.LOW)
+	                    #cv2.putText(image, " not in range", (150, 100),
+	                                #cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
 	                if distanceLeft < 0.020:
 	                    val = 0.23
 	                    valU = 0.070
@@ -344,7 +375,7 @@ def detection():
 	                        #draw.rectangle((0,0,_width,_height), outline=0, fill=0)
 	                        # disp.clear()
 	                        #GPIO.output(buzzer,GPIO.LOW)
-	                        GPIO.output(led2,GPIO.LOW)
+	                        GPIO.output(led3,GPIO.LOW)
 	                        score = 0
 	                    if score > timeOfAlarm:
 
@@ -353,12 +384,12 @@ def detection():
 	                        # disp.clear()
 	                        # draw.text((x, top+16),       "   SLEEPING   ",  font=font, fill=255)
 	                        GPIO.output(buzzer,GPIO.HIGH)
-	                        GPIO.output(led2,GPIO.HIGH)
+	                        GPIO.output(led3,GPIO.HIGH)
 	                        #time.sleep(1)
 	                        #GPIO.output(buzzer,GPIO.LOW)
 	                    else:
 	                    	GPIO.output(buzzer,GPIO.LOW)
-	                    	GPIO.output(led2,GPIO.LOW)
+	                    	GPIO.output(led3,GPIO.LOW)
 	                    	#score = 0
 	                    
 	                        # IMAGE SAVE 2
@@ -382,12 +413,15 @@ def detection():
 	                        cv2.putText(image, "Watch Front", (200, 400),
 	                                    cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 3)
 	                        GPIO.output(buzzer,GPIO.HIGH)
-	                        GPIO.output(led2,GPIO.HIGH)
+	                        GPIO.output(led3,GPIO.HIGH)
 	                        #time.sleep(1)
 	                    else:    
 	                        GPIO.output(buzzer,GPIO.LOW)
-	                        GPIO.output(led2,GPIO.LOW)
+	                        GPIO.output(led3,GPIO.LOW)
 	                        #score=0
+	            else:
+	                GPIO.output(buzzer,GPIO.LOW)
+	                GPIO.output(led3,GPIO.LOW)
 	            end = time.time()
 	            totalTime = end - start
 	            if displayFPS:
@@ -398,7 +432,7 @@ def detection():
 
 	                cv2.putText(image, f'FPS: {int(fps)}', (20, 70),
 	                            cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 255, 0), 2)
-	            result.write(image)
+	            #result.write(image)
 	            with lock:
                         outputFrame = image.copy()
 
@@ -421,9 +455,11 @@ if __name__ == '__main__':
     buzzer=5
     led1=16
     led2=26
+    led3=14
     GPIO.setup(buzzer,GPIO.OUT)
     GPIO.setup(led1,GPIO.OUT)
     GPIO.setup(led2,GPIO.OUT)
+    GPIO.setup(led3,GPIO.OUT)
     GPIO.output(led1,GPIO.HIGH)
     variables_dict = None
     stop_thread=False 
@@ -439,6 +475,10 @@ if __name__ == '__main__':
         cameraPort = 0
         displayFPS = True
         anotateEyes = True
+        box_X1=100
+        box_Y1=100
+        box_X2=200
+        box_Y2=200
         print("choosing default")
 
     cap = cv2.VideoCapture(cameraPort)
@@ -454,8 +494,8 @@ if __name__ == '__main__':
     try:
     	app.run(host=hostip, port=port, debug=True,
             threaded=True, use_reloader=False)
-    except:
-    	pass
+    except Exception as e:
+        print(e)
 
     cap.release()
     GPIO.output(led1,GPIO.LOW)
