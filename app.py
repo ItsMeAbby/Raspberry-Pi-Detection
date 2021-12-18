@@ -13,8 +13,9 @@ import threading
 import json
 import serial
 
-
+cwd = os.getcwd()
 app = Flask(__name__)
+cwd = "/home/disruptlabs/"
 
 
 @app.route("/")
@@ -49,7 +50,7 @@ def read_sleep():
 
 
 def updateJson(data):
-    with open("templates/changable_variables.json", "r") as json_file:
+    with open(cwd+"templates/changable_variables.json", "r") as json_file:
         changable_variables_list = json.load(json_file)
         # print(changable_variables_list)
         # print(changable_variables_list["range"]["thresholdVal"]["value"])
@@ -78,7 +79,7 @@ def updateJson(data):
         changable_variables_list["string"]["hostip"]["value"] = changable_variables_list[
             "string"]["hostip"]["value"] if data["hostip"] == "" else data["hostip"]
     # json_file = os.remove("templates/changable_variables.json")
-    with open("templates/changable_variables.json", "w") as json_file:
+    with open(cwd +"templates/changable_variables.json", "w") as json_file:
         json.dump(changable_variables_list, json_file, indent=4)
     assignVariables()
 
@@ -86,7 +87,7 @@ def updateJson(data):
 def readFromJSON():
     print("reading configured variables")
     global variables_dict
-    json_file = open("templates/changable_variables.json", "r")
+    json_file = open(cwd + "templates/changable_variables.json", "r")
     variables_dict = json.load(json_file)
     json_file.close()
     return variables_dict
@@ -163,7 +164,7 @@ def write_json(new_data, filename, value):
         json.dump(file_data, file, indent=4)
 
 def filename():
-    with open('name.txt', 'r+') as file:
+    with open(cwd+'name.txt', 'r+') as file:
         # First we load existing data into a dict.
         file_data = file.read()
         # Join new_data with file_data inside emp_details
@@ -177,7 +178,7 @@ def filename():
         return str(file_data)
  
 def newfile(val):
-    with open('name.txt', 'w') as file:
+    with open(cwd+'name.txt', 'w') as file:
         # First we load existing data into a dict.
         file.write(str(val+1))
 
@@ -186,13 +187,13 @@ def detection():
     global displayFPS
     global anotateEyes
     global thresholdVal
-    global timeOfAlarm
+    global timeOfAlarm,ser
 
     global cap, outputFrame, lock
     global box_X1, box_X2,box_Y1,box_Y2
     val = thresholdVal
     notinroi=True
-    valU = 0.10
+    valU = 0.2
     valD = -0.05
 
     score = 0
@@ -272,14 +273,50 @@ def detection():
                 (X2, Y2) = boY.astype(int)
         
                 if (X1>box_X1 and Y1>box_Y1 and X2<box_X2 and Y2<box_Y2 ):
-                    ser.write(bytes(ROILedON,'utf-8'))
+                    try:
+                        ser.write(bytes(ROILedON,'utf-8'))
+                        
+                        
+                    except Exception as e:
+                        try:
+                            ser =serial.Serial('/dev/ttyUSB1')
+                            ser.baudrate=9600
+                            print(ser)
+                        except:
+                            try:
+                                ser =serial.Serial('/dev/ttyUSB0')
+                                ser.baudrate=9600
+                                print(ser)
+                            except:
+                                pass
+                            pass
+                        print(e)
+                    
                     notinroi=False
                     
 
                     #cv2.putText(image, " in range", (150, 100),
                                 #cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
                 else:
-                    ser.write(bytes(ROILedOFF,'utf-8'))
+                    try:
+                        ser.write(bytes(alarmOFF,'utf-8'))
+                        ser.write(bytes(BlinkLedOFF,'utf-8'))
+                        ser.write(bytes(ROILedOFF,'utf-8'))
+                        
+                    except Exception as e:
+                        try:
+                            ser =serial.Serial('/dev/ttyUSB1')
+                            ser.baudrate=9600
+                            print(ser)
+                        except:
+                            try:
+                                ser =serial.Serial('/dev/ttyUSB0')
+                                ser.baudrate=9600
+                                print(ser)
+                            except:
+                                pass
+                            pass                        
+                        print(e)
                     notinroi=True
 
                     #cv2.putText(image, " not in range", (150, 100),
@@ -287,7 +324,7 @@ def detection():
                 if not notinroi:    
                     if distanceLeft < 0.020:
                         val = 0.23
-                        valU = 0.070
+                        valU = 0.150
 
                     elif distanceLeft < 0.027:
                         val = 0.27
@@ -295,7 +332,7 @@ def detection():
                             val = 0.25
                     else:
                         val = thresholdVal
-                        valU = 0.10
+                        valU = 0.2
                         valD = -0.13
 
                     if distanceLeft < 0.00:
@@ -331,18 +368,48 @@ def detection():
 
                         ear = (leftEAR + rightEAR) / 2.0
                         # print(ear, val)
-                        # cv2.putText(image, str(ear), (100, 100), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 255), 3)
+                        cv2.putText(image, str(distanceUP), (100, 100), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 255), 3)
                         # print(ear)
                         if ear < val:
                             # print("reached")
                             score += 1
                             #draw = ImageDraw.Draw(_image)
                             #draw.rectangle((0,0,_width,_height), outline=0, fill=0)
-                            ser.write(bytes(BlinkLedON,'utf-8'))
+                            try:
+                                ser.write(bytes(BlinkLedON,'utf-8'))
+                            except Exception as e:
+                                try:
+                                    ser =serial.Serial('/dev/ttyUSB1')
+                                    ser.baudrate=9600
+                                    print(ser)
+                                except:
+                                    try:
+                                        ser =serial.Serial('/dev/ttyUSB0')
+                                        ser.baudrate=9600
+                                        print(ser)
+                                    except:
+                                        pass
+                                    pass                                
+                                print(e)
                             cv2.putText(image, "BLINKED", (300, 70),
                                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
                         else:
-                            ser.write(bytes(BlinkLedOFF,'utf-8'))
+                            try:
+                                ser.write(bytes(BlinkLedOFF,'utf-8'))
+                            except Exception as e:
+                                try:
+                                    ser =serial.Serial('/dev/ttyUSB1')
+                                    ser.baudrate=9600
+                                    print(ser)
+                                except:
+                                    try:
+                                        ser =serial.Serial('/dev/ttyUSB0')
+                                        ser.baudrate=9600
+                                        print(ser)
+                                    except:
+                                        pass
+                                    pass                                  
+                                print(e)
                             score = 0
                         if score > timeOfAlarm:
 
@@ -350,23 +417,99 @@ def detection():
                                         cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 3)
                             # disp.clear()
                             # draw.text((x, top+16),       "   SLEEPING   ",  font=font, fill=255)
-                            ser.write(bytes(alarmON,'utf-8'))
+                            try:
+                                ser.write(bytes(alarmON,'utf-8'))
+                            except Exception as e:
+                                try:
+                                    ser =serial.Serial('/dev/ttyUSB1')
+                                    ser.baudrate=9600
+                                    print(ser)
+                                except:
+                                    try:
+                                        ser =serial.Serial('/dev/ttyUSB0')
+                                        ser.baudrate=9600
+                                        print(ser)
+                                    except:
+                                        pass
+                                    pass  
+                                print(e)
                             #time.sleep(1)
                             #GPIO.output(buzzer,GPIO.LOW)
                         else:
-                            
-                            ser.write(bytes(alarmOFF,'utf-8'))
+                            try:
+                                ser.write(bytes(alarmOFF,'utf-8'))
+                            except Exception as e:
+                                try:
+                                    ser =serial.Serial('/dev/ttyUSB1')
+                                    ser.baudrate=9600
+                                    print(ser)
+                                except:
+                                    try:
+                                        ser =serial.Serial('/dev/ttyUSB0')
+                                        ser.baudrate=9600
+                                        print(ser)
+                                    except:
+                                        pass
+                                    pass  
+                                print(e)
                     else:
                         if score > timeOfAlarm:
                             cv2.putText(image, "Watch Front", (200, 400),
                                         cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 3)
-                            ser.write(bytes(alarmON,'utf-8'))
+                            try:
+                                ser.write(bytes(alarmON,'utf-8'))
+                            except Exception as e:
+                                try:
+                                    ser =serial.Serial('/dev/ttyUSB1')
+                                    ser.baudrate=9600
+                                    print(ser)
+                                except:
+                                    try:
+                                        ser =serial.Serial('/dev/ttyUSB0')
+                                        ser.baudrate=9600
+                                        print(ser)
+                                    except:
+                                        pass
+                                    pass  
+                                print(e)
                             #time.sleep(1)
                         else:
-                            ser.write(bytes(alarmOFF,'utf-8'))
+                            try:
+                                ser.write(bytes(alarmOFF,'utf-8'))
+                            except Exception as e:
+                                try:
+                                    ser =serial.Serial('/dev/ttyUSB1')
+                                    ser.baudrate=9600
+                                    print(ser)
+                                except:
+                                    try:
+                                        ser =serial.Serial('/dev/ttyUSB0')
+                                        ser.baudrate=9600
+                                        print(ser)
+                                    except:
+                                        pass
+                                    pass  
+                                print(e)
                             #score=0
             else:
-                ser.write(bytes(alarmOFF,'utf-8'))
+                try:    
+                    ser.write(bytes(alarmOFF,'utf-8'))
+                    ser.write(bytes(BlinkLedOFF,'utf-8'))
+                    ser.write(bytes(ROILedOFF,'utf-8'))
+                except Exception as e:
+                    try:
+                        ser =serial.Serial('/dev/ttyUSB1')
+                        ser.baudrate=9600
+                        print(ser)
+                    except:
+                        try:
+                                ser =serial.Serial('/dev/ttyUSB0')
+                                ser.baudrate=9600
+                                print(ser)
+                        except:
+                                pass
+                        pass  
+                    print(e)
             end = time.time()
             totalTime = end - start
             if displayFPS:
@@ -383,9 +526,18 @@ def detection():
                     
 if __name__ == '__main__':
     print("starting")
-    ser =serial.Serial('/dev/ttyUSB0')
-    ser.baudrate=9600
-    print(ser)
+    try:
+        ser =serial.Serial('/dev/ttyUSB0')
+        ser.baudrate=9600
+        print(ser)
+    except:
+        try:
+            ser =serial.Serial('/dev/ttyUSB1')
+            ser.baudrate=9600
+            print(ser)
+        except:
+            pass
+        pass
 
 
     alarmON='d'
@@ -396,9 +548,24 @@ if __name__ == '__main__':
     programLedOFF='A'
     BlinkLedOFF='B'
     ROILedOFF='C'
-    time.sleep(1)
-    ser.write(bytes(programLedON,'utf-8'))
-    time.sleep(1)
+    time.sleep(2)
+    try:
+        ser.write(bytes(programLedON,'utf-8'))
+    except Exception as e:
+        try:
+            ser =serial.Serial('/dev/ttyUSB1')
+            ser.baudrate=9600
+            print(ser)
+        except:
+            try:
+                                ser =serial.Serial('/dev/ttyUSB0')
+                                ser.baudrate=9600
+                                print(ser)
+            except:
+                                pass
+            pass  
+        print(e)
+    
     variables_dict = None
     stop_thread=False 
     try:
@@ -436,8 +603,24 @@ if __name__ == '__main__':
         print(e)
 
     cap.release()
-    ser.write(bytes(programLedOFF,'utf-8'))
-    ser.write(bytes(alarmOFF,'utf-8'))
-    ser.write(bytes(BlinkLedOFF,'utf-8'))
-    ser.write(bytes(ROILedOFF,'utf-8'))
+    try:
+        ser.write(bytes(programLedOFF,'utf-8'))
+        ser.write(bytes(alarmOFF,'utf-8'))
+        ser.write(bytes(BlinkLedOFF,'utf-8'))
+        ser.write(bytes(ROILedOFF,'utf-8'))
+    except Exception as e:
+        try:
+            ser =serial.Serial('/dev/ttyUSB1')
+            ser.baudrate=9600
+            print(ser)
+        except:
+            try:
+                                ser =serial.Serial('/dev/ttyUSB0')
+                                ser.baudrate=9600
+                                print(ser)
+            except:
+                                pass
+            pass  
+        print(e)
+
     cv2.destroyAllWindows()
