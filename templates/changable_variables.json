@@ -6,27 +6,27 @@
             "max": 1
         },
         "timeOfAlarm": {
-            "value": 15.0,
+            "value": 22.912,
             "min": 1,
             "max": 30
         },
         "box_X1": {
-            "value": 1,
+            "value": 100,
             "min": 1,
             "max": 600
         },
         "box_X2": {
-            "value": 600,
+            "value": 540,
             "min": 1,
             "max": 600
         },
         "box_Y1": {
-            "value": 152,
+            "value": 100,
             "min": 1,
             "max": 400
         },
         "box_Y2": {
-            "value": 252,
+            "value": 300,
             "min": 1,
             "max": 400
         }
